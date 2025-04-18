@@ -176,12 +176,12 @@ Si te molestan los mensajes de cloud init y querés arrancar un poquito más rá
 
     sudo apt install network-manager
 
-```
 Conectar adaptador WiFi-USB y asociar en el menú de VBox -> Devices
+
 ```
-
-   nmcli d wifi connect my_wifi password <password> 
-
+nmcli connection modify "my_wifi" ipv4.addresses 192.168.0.100/24
+nmcli --ask device wifi connect "my_wifi" password 
+```
    
 https://ubuntu.com/core/docs/networkmanager/configure-wifi-connections
 
@@ -386,7 +386,7 @@ Esperamos
 
 
 
-## Paso 4 (Sólo IIoT): Entorno ESP-IDF para ESP32/ESP32s2/ESP32c3
+## Paso 4 (Sólo IIoT): Entorno ESP-IDF para ESP32/ESP32s2/ESP32c3 (toolchain)
 
 En el último paso, alcanza con elegir sólo las que uno tiene.
 
