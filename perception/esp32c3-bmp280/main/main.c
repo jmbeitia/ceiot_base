@@ -30,7 +30,7 @@
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&t=%0.2f&h=%0.2f";
+static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&h=%0.2f";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -75,13 +75,13 @@ static void http_get_task(void *pvParameters)
         } else {
             ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
 //            if (bme280p) {
-                ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
-		sprintf(body, BODY, temperature , humidity );
-                sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
-//	    } else {
+            ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
+            sprintf(body, BODY, temperature , humidity );
+            sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
+//      } else {
 //                sprintf(send_buf, REQUEST_POST, temperature , 0);
 //            }
-	    ESP_LOGI(TAG,"sending: \n%s\n",send_buf);
+        ESP_LOGI(TAG,"sending: \n%s\n",send_buf);
         }    
 
         int err = getaddrinfo(API_IP, API_PORT, &hints, &res);
