@@ -30,7 +30,7 @@
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&h=%0.2f&p=%0.2f";
+// static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&h=%0.2f&p=%0.2f";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -51,6 +51,12 @@ static void http_get_task(void *pvParameters)
     int s, r;
     char body[64];
     char recv_buf[64];
+
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);  // lee la MAC de la STA (WiFi cliente)
+    char device_id[18];
+    snprintf(device_id, sizeof(device_id), "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     char send_buf[256];
 
@@ -76,7 +82,8 @@ static void http_get_task(void *pvParameters)
             ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
 //            if (bme280p) {
             ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
-            sprintf(body, BODY, temperature, humidity, pressure);
+            // sprintf(body, BODY, temperature, humidity, pressure);
+            sprintf(body, "id=%s&key=%s&t=%.2f&h=%.2f&p=%.2f", device_id, DEVICE_KEY, temperature, humidity, pressure);
             sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
 //      } else {
 //                sprintf(send_buf, REQUEST_POST, temperature , 0);
