@@ -40,6 +40,75 @@ static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "\r\n"
     "%s";
 
+    #define WEB_PATH_DEVICE "/device"
+
+static char *REQUEST_POST_DEVICE = "POST "WEB_PATH_DEVICE" HTTP/1.0\r\n"
+    "Host: "API_IP_PORT"\r\n"
+    "User-Agent: "USER_AGENT"\r\n"
+    "Content-Type: application/x-www-form-urlencoded\r\n"
+    "Content-Length: %d\r\n"
+    "\r\n"
+    "%s";
+
+void register_device(const char* device_id) {
+    const struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM,
+    };
+    struct addrinfo *res;
+    int s, r;
+    char body[128];
+    char send_buf[512];
+    char recv_buf[128];
+
+    sprintf(body, "id=%s&n=%s&k=%s", device_id, DEVICE_ID, DEVICE_KEY);
+
+    sprintf(send_buf, REQUEST_POST_DEVICE, (int)strlen(body), body);
+
+    ESP_LOGI(TAG, "Sending device register:\n%s", send_buf);
+
+    int err = getaddrinfo(API_IP, API_PORT, &hints, &res);
+    if (err != 0 || res == NULL) {
+        ESP_LOGE(TAG, "DNS lookup failed for device registration");
+        return;
+    }
+
+    s = socket(res->ai_family, res->ai_socktype, 0);
+    if (s < 0) {
+        ESP_LOGE(TAG, "Failed to allocate socket for device registration");
+        freeaddrinfo(res);
+        return;
+    }
+
+    if (connect(s, res->ai_addr, res->ai_addrlen) != 0) {
+        ESP_LOGE(TAG, "Socket connect failed for device registration, errno=%d", errno);
+        close(s);
+        freeaddrinfo(res);
+        return;
+    }
+
+    freeaddrinfo(res);
+
+    if (write(s, send_buf, strlen(send_buf)) < 0) {
+        ESP_LOGE(TAG, "Socket send failed for device registration");
+        close(s);
+        return;
+    }
+
+    ESP_LOGI(TAG, "Reading server response for device registration:");
+    do {
+        bzero(recv_buf, sizeof(recv_buf));
+        r = read(s, recv_buf, sizeof(recv_buf)-1);
+        for (int i = 0; i < r; i++) {
+            putchar(recv_buf[i]);
+        }
+    } while (r > 0);
+
+    ESP_LOGI(TAG, "... Done reading device registration response");
+    close(s);
+}
+
+
 static void http_get_task(void *pvParameters)
 {
     const struct addrinfo hints = {
@@ -57,6 +126,8 @@ static void http_get_task(void *pvParameters)
     char device_id[18];
     snprintf(device_id, sizeof(device_id), "%02X:%02X:%02X:%02X:%02X:%02X",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    register_device(device_id);
 
     char send_buf[256];
 

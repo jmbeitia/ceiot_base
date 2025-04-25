@@ -69,9 +69,14 @@ app.post('/measurement', function (req, res) {
 app.post('/device', async function (req, res) {
 	console.log("device id    : " + req.body.id + " name        : " + req.body.n + " key         : " + req.body.k );
 
-	await db.query("INSERT INTO devices (device_id, name, key) VALUES ($1, $2, $3)", 
-                  [req.body.id, req.body.n, req.body.k]);
-    res.send("received new device");
+	const result = await db.query("SELECT * FROM devices WHERE device_id = $1", [req.body.id]);
+	if (result.rows.length > 0) {
+		res.status(200).send("device already registered");
+	} else {
+		await db.query("INSERT INTO devices (device_id, name, key) VALUES ($1, $2, $3)", 
+					  [req.body.id, req.body.n, req.body.k]);
+		res.status(201).send("device registered successfully");
+	}
 });
 
 
