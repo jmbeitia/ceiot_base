@@ -284,7 +284,8 @@ Esperamos algo similar a:
 En una terminal mongodb:
 
     cd ~/ceiot_base
-    docker run  -p 27017:27017 mongo:4.0.4
+    docker volume create --name mongo-data
+    docker run -d -p 27017:27017 -v mongo-data:/data/db mongo:4.0.4
 ```
 # con ^C se puede cerrar al terminar
 ```
